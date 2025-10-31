@@ -1,9 +1,14 @@
 package com.example.lab_week_08
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.work.Constraints
@@ -30,6 +35,14 @@ class MainActivity : AppCompatActivity() { // [cite: 99]
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars()) // [cite: 110]
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom) // [cite: 111]
             insets // [cite: 112]
+        }
+
+        // Meminta izin notifikasi untuk Android 13 (TIRAMISU) ke atas [cite: 531]
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // [cite: 544]
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != // [cite: 545]
+                PackageManager.PERMISSION_GRANTED) { // [cite: 546]
+                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1) // [cite: 547]
+            }
         }
 
         // Membuat batasan (Constraint) agar worker hanya jalan jika ada koneksi internet [cite: 114-116]
@@ -71,6 +84,8 @@ class MainActivity : AppCompatActivity() { // [cite: 99]
             .observe(this) { info -> // [cite: 165]
                 if (info.state.isFinished) { // [cite: 166]
                     showResult("Second process is done") // [cite: 167]
+                    // Panggil service setelah worker kedua selesai
+                    launchNotificationService() // [cite: 576]
                 }
             }
     }
@@ -84,5 +99,26 @@ class MainActivity : AppCompatActivity() { // [cite: 99]
     // Fungsi helper untuk menampilkan Toast [cite: 179]
     private fun showResult(message: String) { // [cite: 180]
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show() // [cite: 181]
+    }
+
+    // Fungsi untuk meluncurkan NotificationService [cite: 551]
+    private fun launchNotificationService() { // [cite: 552]
+        // Mengamati LiveData dari service [cite: 553]
+        NotificationService.trackingCompletion.observe(this) { id -> // [cite: 554, 556]
+            // Menampilkan toast saat service selesai [cite: 554]
+            showResult("Process for Notification Channel ID $id is done!") // [cite: 557]
+        }
+
+        // Membuat Intent untuk memulai service [cite: 558]
+        val serviceIntent = Intent(this, NotificationService::class.java).apply { // [cite: 559-560]
+            putExtra(EXTRA_ID, "001") // [cite: 561]
+        }
+
+        // Memulai foreground service [cite: 563]
+        ContextCompat.startForegroundService(this, serviceIntent) // [cite: 564]
+    }
+
+    companion object { // [cite: 566]
+        const val EXTRA_ID = "Id" // [cite: 569]
     }
 }
