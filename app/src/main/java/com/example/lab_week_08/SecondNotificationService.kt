@@ -85,7 +85,6 @@ class SecondNotificationService : Service() {
             ?: throw IllegalStateException("Channel ID must be provided")
 
         serviceHandler.post {
-            // Kita bisa ubah timernya agar tidak bentrok [cite: 616]
             // Mari kita buat 5 detik
             countDownFromFiveToZero(notificationBuilder)
 
@@ -96,7 +95,7 @@ class SecondNotificationService : Service() {
         return returnValue
     }
 
-    // Fungsi countdown diubah jadi 5 detik [cite: 616]
+    // Fungsi countdown diubah jadi 5 detik
     private fun countDownFromFiveToZero(notificationBuilder: NotificationCompat.Builder) {
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         for (i in 5 downTo 0) { // Diubah ke 5 detik
